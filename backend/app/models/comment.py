@@ -9,8 +9,11 @@ class MediaEntity(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(255), nullable=False)
+    title_es = Column(String(255), nullable=True)
+    title_ru = Column(String(255), nullable=True)
+    tmdb_id = Column(Integer, nullable=True, unique=True)
     type = Column(String(50))  # 'movie' or 'series'
-    search_keywords = Column(Text)  # comma-separated keywords
+    search_keywords = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     comments = relationship("Comment", back_populates="media_entity")
@@ -23,10 +26,10 @@ class Comment(Base):
     source_id = Column(String(255), unique=True, nullable=False)
     text = Column(Text, nullable=False)
     author = Column(String(255))
-    platform = Column(String(50))  # 'reddit' or 'youtube'
+    platform = Column(String(50))  # 'youtube'
     source_url = Column(Text)
     media_entity_id = Column(Integer, ForeignKey("media_entities.id"), nullable=True)
-    language = Column(String(10))  # 'es', 'en', 'ru', 'unsupported'
+    language = Column(String(20))  # 'es', 'en', 'ru', 'unsupported'
     processed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -65,7 +68,7 @@ class CollectionLog(Base):
     __tablename__ = "collection_logs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    source = Column(String(50))  # 'reddit' or 'youtube'
+    source = Column(String(50))  # 'youtube', 'tmdb'
     query = Column(String(255))
     count_collected = Column(Integer, default=0)
     status = Column(String(20))  # 'success', 'error', 'partial'

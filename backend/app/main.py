@@ -1,20 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import create_tables
+from app.routers import trends, sentiment, wordcloud, topics, comments
 
-app = FastAPI(
-    title="LenguaTrends API",
-    description="API для анализа трендов комментариев на различных языках",
-    version="0.1.0",
-)
+app = FastAPI(title="LenguaTrends API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"], allow_credentials=True,
+    allow_methods=["*"], allow_headers=["*"],
 )
+
+app.include_router(trends.router)
+app.include_router(sentiment.router)
+app.include_router(wordcloud.router)
+app.include_router(topics.router)
+app.include_router(comments.router)
 
 
 @app.on_event("startup")
@@ -24,9 +25,4 @@ def on_startup():
 
 @app.get("/")
 def root():
-    return {"message": "LenguaTrends API is running", "version": "0.1.0"}
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+    return {"status": "ok", "version": "1.0.0"}
