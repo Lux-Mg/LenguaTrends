@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useLang, getLangName } from '../i18n/LangContext';
 import { getComments } from '../services/api';
 
-const langColors = { en: '#4f8ef7', es: '#f59e0b', ru: '#8b5cf6' };
-const langNames = { en: 'English', es: 'Español', ru: 'Русский' };
-const sentLabel = { positive: 'Позитив', negative: 'Негатив', neutral: 'Нейтрал' };
-const sentCls = { positive: 'b-pos', negative: 'b-neg', neutral: 'b-neu' };
+const langColors = { en: '#2ecc71', es: '#e67e22', ru: '#3498db' };
 
 function RecentComments() {
+  const { lang, t } = useLang();
+  const sentLabel = { positive: t.positive, negative: t.negative, neutral: t.neutral };
+  const sentCls = { positive: 'b-pos', negative: 'b-neg', neutral: 'b-neu' };
+
   const [byLang, setByLang] = useState({ en: [], es: [], ru: [] });
 
   useEffect(() => {
@@ -19,20 +21,26 @@ function RecentComments() {
     }).catch(console.error);
   }, []);
 
+  const movieTitle = (c) => {
+    if (lang === 'es') return c.movie_es || c.movie || '—';
+    if (lang === 'ru') return c.movie_ru || c.movie || '—';
+    return c.movie || '—';
+  };
+
   return (
     <div className="lt-card">
-      <div className="lt-card-title">Последние комментарии</div>
-      {['en', 'es', 'ru'].map(lang => (
-        <React.Fragment key={lang}>
+      <div className="lt-card-title">{t.recentComments}</div>
+      {['en', 'es', 'ru'].map(l => (
+        <React.Fragment key={l}>
           <div className="lang-divider">
-            <span className="lang-badge" style={{ background: langColors[lang] }}>{lang.toUpperCase()}</span>
-            <span>{langNames[lang]}</span>
+            <span className="lang-badge" style={{ background: langColors[l] }}>{l.toUpperCase()}</span>
+            <span>{getLangName(l, lang)}</span>
           </div>
-          {byLang[lang].map((c, i) => (
+          {byLang[l].map((c, i) => (
             <div className="cm-item" key={i}>
               <div className="cm-meta">
                 <span className="cm-film">
-                  {c.movie ? (c.movie.length > 22 ? c.movie.slice(0, 22) + '…' : c.movie) : '—'}
+                  {(() => { const title = movieTitle(c); return title.length > 22 ? title.slice(0, 22) + '…' : title; })()}
                 </span>
                 {c.sentiment && (
                   <span className={`bdg ${sentCls[c.sentiment.label]}`} style={{ fontSize: 10, padding: '1px 7px' }}>

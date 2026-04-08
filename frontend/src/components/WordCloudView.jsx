@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLang, getLangName } from '../i18n/LangContext';
 import { getWordCloud } from '../services/api';
 
-const sentColors = { positive: '#22c55e', negative: '#ef4444', neutral: '#64748b' };
+const sentColors = { positive: '#66BB6A', negative: '#E57373', neutral: '#90A4AE' };
 
 function WordCloudView() {
-  const [lang, setLang] = useState('en');
+  const { lang, t } = useLang();
+  const [wcLang, setWcLang] = useState('en');
   const [words, setWords] = useState([]);
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    getWordCloud({ lang, limit: 40 }).then(res => setWords(res.data)).catch(console.error);
-  }, [lang]);
+    getWordCloud({ lang: wcLang, limit: 40 }).then(res => setWords(res.data)).catch(console.error);
+  }, [wcLang]);
 
   useEffect(() => {
     if (words.length > 0 && canvasRef.current) drawCloud();
@@ -40,8 +42,8 @@ function WordCloudView() {
     for (const word of words) {
       const ratio = word.count / maxF;
       const size = Math.max(11, Math.round(ratio * 48));
-      ctx.font = `${ratio > 0.4 ? 'bold' : 'normal'} ${size}px system-ui, sans-serif`;
-      const color = sentColors[word.sentiment] || '#64748b';
+      ctx.font = `${ratio > 0.4 ? 'bold' : 'normal'} ${size}px "DM Sans", system-ui, sans-serif`;
+      const color = sentColors[word.sentiment] || '#90A4AE';
       const metrics = ctx.measureText(word.word);
       const tw = metrics.width;
       const th = size * 1.2;
@@ -49,7 +51,6 @@ function WordCloudView() {
       let x, y, attempts = 0;
       const cx = W / 2, cy = H / 2;
 
-      // Espiral desde el centro
       do {
         const angle = attempts * 0.5;
         const radius = attempts * 2.5;
@@ -70,14 +71,14 @@ function WordCloudView() {
     <>
       <div className="lt-filter">
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span className="lt-filter-label">Язык:</span>
-          {[{ c: 'en', l: 'English' }, { c: 'es', l: 'Español' }, { c: 'ru', l: 'Русский' }].map(o => (
-            <button key={o.c} onClick={() => setLang(o.c)}
-              className={`lt-pill ${lang === o.c ? 'on' : ''}`}>{o.l}</button>
+          <span className="lt-filter-label">{t.filterLang}</span>
+          {['en', 'es', 'ru'].map(l => (
+            <button key={l} onClick={() => setWcLang(l)}
+              className={`lt-pill ${wcLang === l ? 'on' : ''}`}>{getLangName(l, lang)}</button>
           ))}
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
-          {[['Позитив', '#22c55e'], ['Негатив', '#ef4444'], ['Нейтрал', '#64748b']].map(([l, c]) => (
+          {[[t.positive, '#66BB6A'], [t.negative, '#E57373'], [t.neutral, '#90A4AE']].map(([l, c]) => (
             <span key={l} style={{ fontSize: 12, color: c, display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, background: c, borderRadius: '50%', display: 'inline-block' }} />{l}
             </span>
@@ -89,22 +90,22 @@ function WordCloudView() {
           <div style={{ position: 'relative', height: 380, overflow: 'hidden' }}>
             <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0 }} />
           </div>
-          <div style={{ textAlign: 'center', fontSize: 12, color: '#334155', marginTop: 6 }}>
-            Размер слова пропорционален частоте · Цвет = тональность
+          <div style={{ textAlign: 'center', fontSize: 12, color: '#95a5a6', marginTop: 6 }}>
+            {t.wordcloudSub}
           </div>
         </div>
         <div className="lt-card">
-          <div className="lt-card-title" style={{ fontSize: 13 }}>Топ слов</div>
+          <div className="lt-card-title" style={{ fontSize: 13 }}>{t.topWords}</div>
           {words.slice(0, 15).map((w, i) => (
             <div key={w.word} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13,
+              padding: '5px 0', borderBottom: '1px solid #eef0f2', fontSize: 13,
             }}>
-              <span style={{ color: sentColors[w.sentiment] || '#94a3b8' }}>
-                <span style={{ color: '#334155', marginRight: 6, fontSize: 11 }}>{i + 1}</span>
+              <span style={{ color: sentColors[w.sentiment] || '#90A4AE' }}>
+                <span style={{ color: '#95a5a6', marginRight: 6, fontSize: 11 }}>{i + 1}</span>
                 {w.word}
               </span>
-              <span style={{ color: '#475569', fontWeight: 500 }}>{w.count}</span>
+              <span style={{ color: '#7f8c8d', fontWeight: 500 }}>{w.count}</span>
             </div>
           ))}
         </div>

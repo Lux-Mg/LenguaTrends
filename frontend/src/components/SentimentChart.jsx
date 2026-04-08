@@ -1,13 +1,14 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const langNames = { EN: 'English', ES: 'Español', RU: 'Русский' };
+import { useLang, getLangName } from '../i18n/LangContext';
 
 function SentimentChart({ sentimentData }) {
+  const { lang, t } = useLang();
   if (!sentimentData) return null;
 
-  const data = Object.entries(sentimentData).map(([lang, v]) => ({
-    language: lang.toUpperCase(),
+  const data = Object.entries(sentimentData).map(([l, v]) => ({
+    language: l.toUpperCase(),
+    langName: getLangName(l, lang),
     positive: v.positive, negative: v.negative, neutral: v.neutral,
     total: v.positive + v.negative + v.neutral,
   }));
@@ -15,33 +16,33 @@ function SentimentChart({ sentimentData }) {
   return (
     <div className="lt-card">
       <div className="lt-card-title">
-        Тональность по языкам
-        <span className="lt-card-sub">кол. комментариев</span>
+        {t.sentByLang}
+        <span className="lt-card-sub">{t.sentCount}</span>
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-          <XAxis dataKey="language" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-          <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
-          <Tooltip contentStyle={{ background: '#0b0f1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e2e8f0', fontSize: 13 }} />
-          <Bar dataKey="positive" fill="rgba(34,197,94,0.75)" name="Позитив" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="neutral" fill="rgba(148,163,184,0.6)" name="Нейтрал" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="negative" fill="rgba(239,68,68,0.75)" name="Негатив" radius={[4, 4, 0, 0]} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#eef0f2" />
+          <XAxis dataKey="language" tick={{ fill: '#2c3e50', fontSize: 12 }} />
+          <YAxis tick={{ fill: '#95a5a6', fontSize: 11 }} />
+          <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8, color: '#2c3e50', fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+          <Bar dataKey="positive" fill="#66BB6A" name={t.positive} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="neutral" fill="#90A4AE" name={t.neutral} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="negative" fill="#E57373" name={t.negative} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 8 }}>
-        {[['Позитив', '#22c55e'], ['Нейтрал', '#94a3b8'], ['Негатив', '#ef4444']].map(([l, c]) => (
+        {[[t.positive, '#66BB6A'], [t.neutral, '#90A4AE'], [t.negative, '#E57373']].map(([l, c]) => (
           <span key={l} style={{ fontSize: 12, color: c, display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ width: 10, height: 3, background: c, display: 'inline-block', borderRadius: 2 }} />{l}
           </span>
         ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 14, paddingTop: 12, borderTop: '1px solid #eef0f2' }}>
         {data.map(d => (
           <div key={d.language} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>{langNames[d.language] || d.language}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#94a3b8', marginTop: 2 }}>{d.total.toLocaleString()}</div>
-            <div style={{ fontSize: 11, color: '#475569' }}>комм.</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#2c3e50' }}>{d.langName}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#2c3e50', marginTop: 2 }}>{d.total.toLocaleString()}</div>
+            <div style={{ fontSize: 11, color: '#95a5a6' }}>{t.comments}</div>
           </div>
         ))}
       </div>

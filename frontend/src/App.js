@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LangProvider, useLang } from './i18n/LangContext';
 import StatsCards from './components/StatsCards';
 import TopTrends from './components/TopTrends';
 import SentimentChart from './components/SentimentChart';
@@ -12,16 +13,18 @@ import CommentsTable from './components/CommentsTable';
 import { getStats, getTrends, getSentimentByLanguage, getSentimentByMovie } from './services/api';
 import './App.css';
 
-const tabs = [
-  { id: 'dashboard', label: 'Главная' },
-  { id: 'trends', label: 'Тренды' },
-  { id: 'sentiment', label: 'Тональность' },
-  { id: 'wordcloud', label: 'Облако слов' },
-  { id: 'dynamics', label: 'Динамика' },
-  { id: 'comments', label: 'Комментарии' },
-];
+function AppContent() {
+  const { lang, setLang, t } = useLang();
 
-function App() {
+  const tabs = [
+    { id: 'dashboard', label: t.tabDashboard },
+    { id: 'trends', label: t.tabTrends },
+    { id: 'sentiment', label: t.tabSentiment },
+    { id: 'wordcloud', label: t.tabWordcloud },
+    { id: 'dynamics', label: t.tabDynamics },
+    { id: 'comments', label: t.tabComments },
+  ];
+
   const [stats, setStats] = useState(null);
   const [trends, setTrends] = useState([]);
   const [sentimentByLang, setSentimentByLang] = useState(null);
@@ -36,12 +39,12 @@ function App() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [s, t, sl, sm] = await Promise.all([
+      const [s, tr, sl, sm] = await Promise.all([
         getStats(), getTrends({ limit: 10 }),
         getSentimentByLanguage(),
         getSentimentByMovie({ limit: 5 }),
       ]);
-      setStats(s.data); setTrends(t.data); setAllTrends(t.data);
+      setStats(s.data); setTrends(tr.data); setAllTrends(tr.data);
       setSentimentByLang(sl.data); setMovieSentiment(sm.data);
     } catch (err) { console.error(err); }
     setLoading(false);
@@ -61,7 +64,7 @@ function App() {
     return (
       <div className="lt-loading">
         <img src="/logo.png" alt="LenguaTrends" className="lt-loading-logo" />
-        <div className="lt-loading-text">Загрузка...</div>
+        <div className="lt-loading-text">{t.loading}</div>
       </div>
     );
   }
@@ -69,11 +72,11 @@ function App() {
   return (
     <div className="lt">
       <nav className="lt-nav">
-        <div className="lt-brand">
+        <div className="lt-brand" onClick={() => setActiveTab('dashboard')}>
           <img src="/logo.png" alt="LT" className="lt-logo-img" />
           <div>
-            <div className="lt-name">LenguaTrends</div>
-            <div className="lt-sub">Анализ трендов комментариев</div>
+            <div className="lt-name">{t.appName}</div>
+            <div className="lt-sub">{t.appSub}</div>
           </div>
         </div>
         <div className="lt-tabs">
@@ -81,6 +84,14 @@ function App() {
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`lt-tab ${activeTab === tab.id ? 'on' : ''}`}>
               {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="lt-lang-selector">
+          {['ru', 'es', 'en'].map(l => (
+            <button key={l} onClick={() => setLang(l)}
+              className={`lt-lang-btn ${lang === l ? 'on' : ''}`}>
+              {l.toUpperCase()}
             </button>
           ))}
         </div>
@@ -123,10 +134,16 @@ function App() {
         )}
       </main>
 
-      <footer className="lt-footer">
-        LenguaTrends © 2026 — Программная система анализа трендов комментариев на различных языках
-      </footer>
+      <footer className="lt-footer">{t.footer}</footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <LangProvider>
+      <AppContent />
+    </LangProvider>
   );
 }
 

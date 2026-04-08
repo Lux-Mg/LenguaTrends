@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useLang } from '../i18n/LangContext';
 import { getComments } from '../services/api';
 
-const sentLabel = { positive: 'Позитив', negative: 'Негатив', neutral: 'Нейтрал' };
-const sentCls = { positive: 'b-pos', negative: 'b-neg', neutral: 'b-neu' };
-
 function CommentsTable({ filters }) {
+  const { lang, t } = useLang();
+  const sentLabel = { positive: t.positive, negative: t.negative, neutral: t.neutral };
+  const sentCls = { positive: 'b-pos', negative: 'b-neg', neutral: 'b-neu' };
+
   const [data, setData] = useState({ comments: [], total: 0 });
   const [page, setPage] = useState(0);
   const limit = 12;
@@ -25,10 +27,16 @@ function CommentsTable({ filters }) {
   const go = (p) => { setPage(p); load(p * limit); };
   const totalPages = Math.ceil(data.total / limit) || 1;
 
+  const movieTitle = (c) => {
+    if (lang === 'es') return c.movie_es || c.movie || '—';
+    if (lang === 'ru') return c.movie_ru || c.movie || '—';
+    return c.movie || '—';
+  };
+
   return (
     <div className="lt-card">
       <div className="lt-card-title">
-        Комментарии <span style={{ fontSize: 12, fontWeight: 400, color: '#334155' }}>({data.total.toLocaleString()})</span>
+        {t.commentsTitle} <span style={{ fontSize: 12, fontWeight: 400, color: '#95a5a6' }}>({data.total.toLocaleString()})</span>
       </div>
       <table className="lt-tbl" style={{ tableLayout: 'fixed' }}>
         <colgroup>
@@ -40,11 +48,11 @@ function CommentsTable({ filters }) {
         </colgroup>
         <thead>
           <tr>
-            <th>Тональность</th>
-            <th>Язык</th>
-            <th>Комментарий</th>
-            <th>Фильм</th>
-            <th style={{ textAlign: 'right' }}>Score</th>
+            <th>{t.thSentimentCol}</th>
+            <th>{t.thLang}</th>
+            <th>{t.thComment}</th>
+            <th>{t.thMovie}</th>
+            <th style={{ textAlign: 'right' }}>{t.thScore}</th>
           </tr>
         </thead>
         <tbody>
@@ -53,23 +61,23 @@ function CommentsTable({ filters }) {
               <td>
                 {c.sentiment ? (
                   <span className={`bdg ${sentCls[c.sentiment.label] || 'b-und'}`}>
-                    {sentLabel[c.sentiment.label] || 'Не определён'}
+                    {sentLabel[c.sentiment.label] || t.undefined}
                   </span>
-                ) : <span className="bdg b-und">Не определён</span>}
+                ) : <span className="bdg b-und">{t.undefined}</span>}
               </td>
-              <td style={{ color: '#64748b' }}>
+              <td style={{ color: '#7f8c8d' }}>
                 {c.language === 'unsupported' ? '—' : c.language?.toUpperCase()}
               </td>
-              <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#64748b' }}>
+              <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#4a5568' }}>
                 {c.text}
               </td>
-              <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#475569', fontSize: 11 }}>
-                {c.movie || '—'}
+              <td style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#95a5a6', fontSize: 11 }}>
+                {movieTitle(c)}
               </td>
               <td style={{ textAlign: 'right' }}>
                 {c.sentiment?.score != null ? (
-                  <span style={{ fontSize: 11, color: '#475569' }}>{c.sentiment.score.toFixed(2)}</span>
-                ) : <span style={{ color: '#334155' }}>—</span>}
+                  <span style={{ fontSize: 11, color: '#95a5a6' }}>{c.sentiment.score.toFixed(2)}</span>
+                ) : <span style={{ color: '#bdc3c7' }}>—</span>}
               </td>
             </tr>
           ))}
@@ -77,7 +85,7 @@ function CommentsTable({ filters }) {
       </table>
       <div className="lt-pager">
         <button className="pg-btn" onClick={() => go(Math.max(0, page - 1))} disabled={page === 0}>←</button>
-        <span style={{ fontSize: 12, color: '#475569' }}>{page + 1} / {totalPages}</span>
+        <span style={{ fontSize: 12, color: '#95a5a6' }}>{page + 1} / {totalPages}</span>
         <button className="pg-btn" onClick={() => go(page + 1)} disabled={(page + 1) * limit >= data.total}>→</button>
       </div>
     </div>

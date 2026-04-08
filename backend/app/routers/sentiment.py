@@ -30,19 +30,20 @@ def get_sentiment_by_language(movie_id: int = Query(None), db: Session = Depends
 @router.get("/by-movie")
 def get_sentiment_by_movie(lang: str = Query(None), limit: int = Query(5), db: Session = Depends(get_db)):
     query = (
-        db.query(MediaEntity.id, MediaEntity.title, SentimentResult.label, func.count(SentimentResult.id).label("count"))
+        db.query(MediaEntity.id, MediaEntity.title, MediaEntity.title_es,
+                 MediaEntity.title_ru, SentimentResult.label, func.count(SentimentResult.id).label("count"))
         .join(Comment, Comment.media_entity_id == MediaEntity.id)
         .join(SentimentResult, SentimentResult.comment_id == Comment.id)
     )
     if lang:
         query = query.filter(Comment.language == lang)
 
-    results = query.group_by(MediaEntity.id, MediaEntity.title, SentimentResult.label).all()
+    results = query.group_by(MediaEntity.id, MediaEntity.title, MediaEntity.title_es, MediaEntity.title_ru, SentimentResult.label).all()
 
     movies = {}
     for r in results:
         if r.id not in movies:
-            movies[r.id] = {"id": r.id, "title": r.title, "positive": 0, "negative": 0, "neutral": 0, "total": 0}
+            movies[r.id] = {"id": r.id, "title": r.title, "title_es": r.title_es, "title_ru": r.title_ru, "positive": 0, "negative": 0, "neutral": 0, "total": 0}
         movies[r.id][r.label] = r.count
         movies[r.id]["total"] += r.count
 

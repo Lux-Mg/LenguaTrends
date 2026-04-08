@@ -3,7 +3,7 @@ import os
 # Database
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://user:password@localhost:5432/lenguatrends_db"
+    "postgresql://lenguatrends:lenguatrends123@localhost:5432/lenguatrends_db"
 )
 
 # YouTube API

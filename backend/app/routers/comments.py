@@ -36,6 +36,8 @@ def get_comments(
             "platform": c.platform, "language": c.language,
             "created_at": c.created_at.isoformat() if c.created_at else None,
             "movie": m.title if m else None,
+            "movie_es": m.title_es if m else None,
+            "movie_ru": m.title_ru if m else None,
             "sentiment": {"label": s.label, "score": s.score} if s else None,
         } for c, s, m in results],
     }
