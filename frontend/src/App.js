@@ -10,6 +10,7 @@ import WordCloudView from './components/WordCloudView';
 import DynamicsChart from './components/DynamicsChart';
 import FilterPanel from './components/FilterPanel';
 import CommentsTable from './components/CommentsTable';
+import LanguageDivergence from './components/LanguageDivergence';
 import { getStats, getTrends, getSentimentByLanguage, getSentimentByMovie } from './services/api';
 import './App.css';
 
@@ -20,6 +21,7 @@ function AppContent() {
     { id: 'dashboard', label: t.tabDashboard },
     { id: 'trends', label: t.tabTrends },
     { id: 'sentiment', label: t.tabSentiment },
+    { id: 'divergence', label: t.tabDivergence },
     { id: 'wordcloud', label: t.tabWordcloud },
     { id: 'dynamics', label: t.tabDynamics },
     { id: 'comments', label: t.tabComments },
@@ -124,6 +126,7 @@ function AppContent() {
             <SentimentByMovie movieSentiment={movieSentiment} statsOnly />
           </>
         )}
+        {activeTab === 'divergence' && <LanguageDivergence />}
         {activeTab === 'wordcloud' && <WordCloudView />}
         {activeTab === 'dynamics' && <DynamicsChart />}
         {activeTab === 'comments' && (

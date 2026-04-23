@@ -2,10 +2,16 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from collections import Counter
 import re
+import unicodedata
 from app.database import get_db
 from app.models.comment import Comment
 
 router = APIRouter(prefix="/api/wordcloud", tags=["wordcloud"])
+
+
+def _strip_accents(s: str) -> str:
+    # Para comparar stopwords sin importar tildes: "pelicula" == "película"
+    return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
 
 STOP_WORDS = {
     "en": {
@@ -42,11 +48,16 @@ STOP_WORDS = {
         "everything", "someone", "anyone", "everyone", "nobody",
         "because", "since", "while", "although", "though", "however",
         "if", "else", "until", "unless", "whether",
-        "movie", "film", "people", "man", "part", "end",
+        "movie", "movies", "film", "films", "people", "man", "part", "end",
         "yeah", "yes", "okay", "lol", "omg", "wow",
         "feel", "mark", "wait", "being",
-        "seeing", "review", "watched", "watching", "seen",
+        "seeing", "review", "reviews", "watched", "watching", "seen", "watch",
         "time", "gonna", "does", "lot", "put",
+        # youtube / reseñas
+        "cinema", "trailer", "trailers", "scene", "scenes", "character", "characters",
+        "guys", "guy", "hey", "hi", "hello", "welcome", "thanks", "thank",
+        "subscribe", "subscribed", "channel", "video", "videos",
+        "please", "go", "today", "guess", "think", "thought",
     },
     "es": {
         "el", "la", "los", "las", "un", "una", "unos", "unas", "lo", "al", "del",
@@ -78,10 +89,19 @@ STOP_WORDS = {
         "casi", "algo", "nada", "alguien", "nadie",
         "cada", "cual", "cuál", "uno", "dos", "tres", "vez", "veces", "día", "año",
         "así", "además", "menos", "mejor", "peor",
-        "película", "video", "parte", "tipo", "cosas", "cosa", "final", "gran",
+        "película", "pelicula", "peliculas", "películas", "peli", "pelis",
+        "video", "videos", "parte", "tipo", "cosas", "cosa", "final", "gran",
         "creo", "parece", "manera", "forma", "bueno", "buena",
-        "jaja", "jajaja", "xd", "fin", "tengo", "primera", "verdad",
+        "jaja", "jajaja", "jeje", "xd", "fin", "tengo", "primera", "verdad",
         "tiempo", "dan", "tal", "ser", "sido", "pues",
+        # youtube / reseñas
+        "cine", "trailer", "tráiler", "trailers", "tráilers", "escena", "escenas",
+        "canal", "suscríbete", "suscribete", "suscriban", "suscribanse",
+        "hola", "saludos", "gracias", "amigos", "amigo", "chicos", "gente",
+        "bienvenidos", "bienvenido", "vídeo",
+        "reseña", "resena", "reseñas", "resenas", "crítica", "critica", "análisis", "analisis",
+        "voy", "creo", "digo", "dije", "aver", "haber",
+        "comentario", "comentarios", "comenten", "comenta",
     },
     "ru": {
         "в", "на", "с", "по", "к", "из", "о", "за", "от", "до", "для", "при",
@@ -116,17 +136,26 @@ STOP_WORDS = {
         "не", "нет", "ну", "же", "бы", "ли", "вот",
         "так", "уже", "ещё", "еще", "тоже", "также",
         "очень", "более", "менее", "только", "просто", "даже",
+        "почему", "потому", "именно", "будто", "тем", "прям", "лишь", "ведь",
+        "конце", "начале", "середине", "конец",
         "тут", "там", "здесь", "где", "куда", "откуда",
         "сейчас", "теперь", "тогда", "потом", "сначала", "опять", "снова",
         "всегда", "никогда", "иногда",
         "конечно", "вообще", "вроде", "кстати", "ведь", "разве",
         "один", "одна", "одно", "одни", "два", "три", "раз",
         "лучше", "хуже", "больше", "меньше",
-        "фильм", "фильма", "фильме", "фильмы",
+        "фильм", "фильма", "фильме", "фильмы", "фильмов", "фильмом",
         "люди", "человек", "часть", "части",
         "него", "неё", "ней",
-        "смотреть", "смотрел", "обзор", "видео", "много", "хоть",
-        "фильмов", "второй", "время", "спасибо",
+        "смотреть", "смотрел", "смотрим", "посмотрел", "посмотреть", "обзор", "обзоры",
+        "видео", "много", "хоть", "второй", "время", "спасибо",
+        # youtube / reseñas
+        "кино", "кинематограф", "кинотеатр",
+        "привет", "здравствуйте", "друзья", "ребята", "люди",
+        "канал", "подпишись", "подписывайтесь", "подпишитесь", "подписка",
+        "трейлер", "трейлеры", "ролик", "ролики", "рецензия", "рецензии",
+        "сцена", "сцены", "персонаж", "персонажи",
+        "комментарий", "комментарии", "комментарии",
     },
 }
 
@@ -146,19 +175,23 @@ def get_wordcloud(
         query = query.filter(Comment.media_entity_id == movie_id)
 
     results = query.all()
-    stop_words = STOP_WORDS.get(lang, set())
+    # set de stopwords normalizadas (sin tildes) para que "pelicula" matchee "película"
+    stop_words_norm = {_strip_accents(w) for w in STOP_WORDS.get(lang, set())}
     word_counter = Counter()
     word_sentiment = {}
 
     for text, label in results:
         words = re.findall(r'[a-záéíóúñа-яёü]+', text.lower())
         for word in words:
-            if len(word) > 2 and word not in stop_words:
-                word_counter[word] += 1
-                if word not in word_sentiment:
-                    word_sentiment[word] = {"positive": 0, "negative": 0, "neutral": 0}
-                if label in word_sentiment[word]:
-                    word_sentiment[word][label] += 1
+            if len(word) <= 2:
+                continue
+            if _strip_accents(word) in stop_words_norm:
+                continue
+            word_counter[word] += 1
+            if word not in word_sentiment:
+                word_sentiment[word] = {"positive": 0, "negative": 0, "neutral": 0}
+            if label in word_sentiment[word]:
+                word_sentiment[word][label] += 1
 
     out = []
     for word, count in word_counter.most_common(limit):
