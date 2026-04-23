@@ -47,9 +47,15 @@ cd LenguaTrends
 
 ```bash
 sudo -u postgres psql
-CREATE USER lenguatrends WITH PASSWORD 'lenguatrends123';
+CREATE USER lenguatrends WITH PASSWORD 'your_password';
 CREATE DATABASE lenguatrends_db OWNER lenguatrends;
 \q
+```
+
+Замените `your_password` на выбранный пароль. Это же значение нужно установить в переменной окружения `DATABASE_URL` или в `backend/app/config.py`:
+
+```
+DATABASE_URL=postgresql://lenguatrends:your_password@localhost:5432/lenguatrends_db
 ```
 
 ### 3. Установка зависимостей серверной части
