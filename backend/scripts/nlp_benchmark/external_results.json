@@ -1,0 +1,71 @@
+{
+  "m1_cardiff_xlmr": {
+    "es": {
+      "n": 198,
+      "accuracy": 0.6414,
+      "f1_macro": 0.6422,
+      "latency_ms_per_comment": 9.6,
+      "source": "mteb/tweet_sentiment_multilingual [spanish]"
+    },
+    "en": {
+      "n": 198,
+      "accuracy": 0.6869,
+      "f1_macro": 0.6849,
+      "latency_ms_per_comment": 3.0,
+      "source": "mteb/tweet_sentiment_multilingual [english]"
+    },
+    "ru": {
+      "n": 198,
+      "accuracy": 0.3838,
+      "f1_macro": 0.3873,
+      "latency_ms_per_comment": 15.0,
+      "source": "MonoHime/ru_sentiment_dataset"
+    }
+  },
+  "m2_distilbert_student": {
+    "es": {
+      "n": 198,
+      "accuracy": 0.4949,
+      "f1_macro": 0.437,
+      "latency_ms_per_comment": 1.4,
+      "source": "mteb/tweet_sentiment_multilingual [spanish]"
+    },
+    "en": {
+      "n": 198,
+      "accuracy": 0.5606,
+      "f1_macro": 0.4606,
+      "latency_ms_per_comment": 1.3,
+      "source": "mteb/tweet_sentiment_multilingual [english]"
+    },
+    "ru": {
+      "n": 198,
+      "accuracy": 0.3939,
+      "f1_macro": 0.3026,
+      "latency_ms_per_comment": 8.7,
+      "source": "MonoHime/ru_sentiment_dataset"
+    }
+  },
+  "m3_tabularisai": {
+    "es": {
+      "n": 198,
+      "accuracy": 0.5202,
+      "f1_macro": 0.5116,
+      "latency_ms_per_comment": 1.8,
+      "source": "mteb/tweet_sentiment_multilingual [spanish]"
+    },
+    "en": {
+      "n": 198,
+      "accuracy": 0.601,
+      "f1_macro": 0.5982,
+      "latency_ms_per_comment": 1.4,
+      "source": "mteb/tweet_sentiment_multilingual [english]"
+    },
+    "ru": {
+      "n": 198,
+      "accuracy": 0.303,
+      "f1_macro": 0.2917,
+      "latency_ms_per_comment": 9.0,
+      "source": "MonoHime/ru_sentiment_dataset"
+    }
+  }
+}
