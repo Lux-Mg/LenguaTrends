@@ -14,7 +14,7 @@ SUPPORTED_SENTIMENTS = {"positive", "negative", "neutral"}
 def get_comments(
     lang: str = Query(None), sentiment: str = Query(None),
     movie_id: int = Query(None),
-    limit: int = Query(20, ge=1, le=200, description="máx 200 por respuesta"),
+    limit: int = Query(20, ge=1, le=1000, description="máx 1000 por respuesta (рекомендуется ≤500)"),
     offset: int = Query(0, ge=0), db: Session = Depends(get_db),
 ):
     # validar parametros enumerados antes de tocar la BD
