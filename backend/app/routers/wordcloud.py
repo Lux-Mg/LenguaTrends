@@ -160,12 +160,19 @@ STOP_WORDS = {
 }
 
 
+SUPPORTED_LANGS_WC = {"es", "en", "ru"}
+
+
 @router.get("/")
 def get_wordcloud(
     lang: str = Query("en"), movie_id: int = Query(None),
-    limit: int = Query(100), db: Session = Depends(get_db),
+    limit: int = Query(100, ge=1, le=500, description="máx 500 palabras por respuesta"),
+    db: Session = Depends(get_db),
 ):
     from app.models.comment import SentimentResult
+
+    if lang not in SUPPORTED_LANGS_WC:
+        return []  # idioma no soportado, lista vacía sin error grave
 
     query = db.query(Comment.text, SentimentResult.label).join(
         SentimentResult, SentimentResult.comment_id == Comment.id
