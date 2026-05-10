@@ -14,13 +14,6 @@ function FilterPanel({ filters, onFilterChange, movies, showSentimentFilter }) {
             className={pill(filters.lang === o.v)}>{o.l}</button>
         ))}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span className="lt-filter-label">{t.filterPeriod}</span>
-        {[{ v: null, l: t.filterAll }, { v: 7, l: t.days7 }, { v: 30, l: t.days30 }, { v: 90, l: t.days90 }].map(o => (
-          <button key={o.l} onClick={() => onFilterChange({ ...filters, period: o.v })}
-            className={pill(filters.period === o.v)}>{o.l}</button>
-        ))}
-      </div>
       {showSentimentFilter && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <span className="lt-filter-label">{t.filterSentiment}</span>

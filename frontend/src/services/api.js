@@ -8,6 +8,7 @@ const api = axios.create({
 
 export const getStats = () => api.get('/api/trends/stats');
 export const getTrends = (params) => api.get('/api/trends/', { params });
+export const getDynamics = (params) => api.get('/api/trends/dynamics', { params });
 export const getSentimentByLanguage = (params) => api.get('/api/sentiment/by-language', { params });
 export const getSentimentByMovie = (params) => api.get('/api/sentiment/by-movie', { params });
 export const getLanguageDivergence = (params) => api.get('/api/sentiment/language-divergence', { params });

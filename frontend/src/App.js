@@ -33,7 +33,7 @@ function AppContent() {
   const [movieSentiment, setMovieSentiment] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ lang: null, period: null, movieId: null, sentiment: null });
+  const [filters, setFilters] = useState({ lang: null, movieId: null, sentiment: null });
   const [allTrends, setAllTrends] = useState([]);
 
   useEffect(() => { loadData(); }, []);
@@ -56,7 +56,6 @@ function AppContent() {
     if (!stats) return;
     const params = {};
     if (filters.lang) params.lang = filters.lang;
-    if (filters.period) params.period = filters.period;
     getTrends({ limit: 10, ...params }).then(r => setTrends(r.data)).catch(console.error);
     getSentimentByLanguage(filters.movieId ? { movie_id: filters.movieId } : {}).then(r => setSentimentByLang(r.data)).catch(console.error);
     getSentimentByMovie({ limit: 5, ...params }).then(r => setMovieSentiment(r.data)).catch(console.error);

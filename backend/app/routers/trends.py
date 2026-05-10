@@ -37,6 +37,51 @@ def get_trends(
             for r in results]
 
 
+@router.get("/dynamics")
+def get_dynamics(
+    granularity: str = Query("month", description="day | week | month | year"),
+    period: str = Query("all", description="all | 3m | 6m | 1y"),
+    db: Session = Depends(get_db),
+):
+    if granularity not in {"day", "week", "month", "year"}:
+        return {"error": f"unsupported granularity '{granularity}'", "data": []}
+    if period not in {"all", "3m", "6m", "1y"}:
+        return {"error": f"unsupported period '{period}'", "data": []}
+
+    # truncamiento de fecha segun granularidad
+    if granularity == "year":
+        bucket_expr = func.to_char(Comment.created_at, "YYYY")
+    elif granularity == "month":
+        bucket_expr = func.to_char(Comment.created_at, "YYYY-MM")
+    elif granularity == "week":
+        bucket_expr = func.to_char(Comment.created_at, "IYYY-IW")  # ISO year-week
+    else:  # day
+        bucket_expr = func.to_char(Comment.created_at, "YYYY-MM-DD")
+
+    query = (
+        db.query(bucket_expr.label("bucket"), Comment.language, func.count(Comment.id).label("count"))
+        .filter(Comment.language.in_(SUPPORTED_LANGUAGES))
+        .filter(Comment.created_at.isnot(None))
+    )
+
+    if period != "all":
+        days_map = {"3m": 90, "6m": 180, "1y": 365}
+        since = datetime.now(timezone.utc) - timedelta(days=days_map[period])
+        query = query.filter(Comment.created_at >= since)
+
+    rows = query.group_by("bucket", Comment.language).order_by("bucket").all()
+
+    # Reorganizar a estructura { bucket: { en, es, ru } }
+    out = {}
+    for r in rows:
+        if r.bucket not in out:
+            out[r.bucket] = {"key": r.bucket, "en": 0, "es": 0, "ru": 0}
+        if r.language in ("en", "es", "ru"):
+            out[r.bucket][r.language] = r.count
+
+    return {"granularity": granularity, "period": period, "data": list(out.values())}
+
+
 @router.get("/stats")
 def get_stats(db: Session = Depends(get_db)):
     total_comments = db.query(Comment).filter(Comment.processed.is_(True)).count()
